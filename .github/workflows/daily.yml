@@ -1,0 +1,30 @@
+name: ELS Report
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 매일 한국시간 아침 9시에 실행
+
+jobs:
+  run-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Python 설치
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: 필요한 라이브러리 설치
+        run: pip install yfinance matplotlib schedule
+      - name: 리포트 실행
+        run: python main.py
+        env:
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT:   ${{ secrets.SMTP_PORT }}
+          EMAIL_USER:  ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS:  ${{ secrets.EMAIL_PASS }}
+          EMAIL_FROM:  ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:    ${{ secrets.EMAIL_TO }}
+          TICKERS:     ${{ secrets.TICKERS }}
+          STRIKES:     ${{ secrets.STRIKES }}
+          BARRIERS:    ${{ secrets.BARRIERS }}
+          COUPONS:     ${{ secrets.COUPONS }}
