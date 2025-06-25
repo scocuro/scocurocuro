@@ -31,7 +31,7 @@ EMAIL_CONFIG = {
     'SMTP_SERVER': 'smtp.gmail.com',
     'SMTP_PORT': 587,
     'USERNAME': 'hyunseo.kang238@gmail.com',
-    'PASSWORD': 'tmih gxmv aohp guf',
+    'PASSWORD': 'tmihgxmvaohpguf',
     'FROM_ADDR': 'hyunseo.kang238@gmail.com',
     'TO_ADDRS': ['fan155@naver.com']
 }
