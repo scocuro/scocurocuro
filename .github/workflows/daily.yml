@@ -1,6 +1,7 @@
 name: ELS Report
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # 매일 한국시간 아침 9시에 실행
 
