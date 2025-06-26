@@ -1,6 +1,6 @@
 import schedule
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from config import (
     UNDERLYING_TICKERS,
     STRIKE_PRICES,
@@ -17,12 +17,17 @@ from data_utils import fetch_last_close, fetch_price_on_date
 from chart_utils import generate_price_chart
 from email_utils import send_email
 
+
 def job():
     today = date.today()
     today_str = today.strftime('%Y-%m-%d')
 
-    body_lines = [f"ELS Daily Report — {today_str}\n"]
-    attachments = []
+    # 결과 테이블 준비
+    headers = [
+        "Ticker", "종가", "기준가격", "하락률", "Knock-in", 
+        "평가차수", "평가일", "Barrier", "상환가"
+    ]
+    rows = []
 
     for ticker in UNDERLYING_TICKERS:
         strike = STRIKE_PRICES[ticker]
@@ -35,71 +40,78 @@ def job():
         # Knock-in 가격
         ki_price = strike * KNOCK_IN_BARRIERS[ticker]
 
-        body_lines.append(
-            f"{ticker}: 종가={close_price:.2f}, 기준가격={strike:.2f}, "
-            f"하락률={decline_txt}, Knock-in 가격={ki_price:.2f}"
-        )
-
-        # 오늘 이후 첫 조기상환 평가차수
+        # 다음 평가차수 찾기
         eval_map = EVALUATION_DATES[ticker]
-        upcoming = next(
-            (i for i, d in sorted(eval_map.items()) if d > today),
-            None
-        )
+        tranches = sorted(eval_map.keys())
+        upcoming = next((i for i in tranches if eval_map[i] > today), None)
 
         if upcoming:
             eval_date = eval_map[upcoming].strftime('%Y-%m-%d')
             barrier = EARLY_REDEMPTION_BARRIERS[ticker][upcoming]
-            # Barrier tuple 처리 (3차 리자드)
+            # Barrier 처리
             if isinstance(barrier, (tuple, list)):
-                b_std, b_lb = barrier
-                barrier_txt = (
-                    f"Barrier≥{b_std*100:.1f}% / Look-back≥{b_lb*100:.1f}%"
-                )
+                b_txt = f"{barrier[0]*100:.1f}%/{barrier[1]*100:.1f}%"
+                barrier_val = barrier
             else:
-                barrier_txt = f"Barrier≥{barrier*100:.1f}%"
+                b_txt = f"{barrier*100:.1f}%"
+                barrier_val = barrier
 
-            coupon = EARLY_REDEMPTION_COUPONS[ticker][upcoming]
-            # Coupon tuple 처리 (3차 리자드)
-            if isinstance(coupon, (tuple, list)):
-                p1 = strike * (1 + coupon[0])
-                p2 = strike * (1 + coupon[1])
-                redemption_txt = f"상환가={p1:.2f} / 리자드={p2:.2f}"
+            # 상환가 = Barrier 비율 * 기준가격
+            if isinstance(barrier_val, (tuple, list)):
+                # 리자드 차수 포함
+                p_standard = barrier_val[0] * strike
+                p_lookback = barrier_val[1] * strike
+                redemption_txt = f"{p_standard:.2f}/{p_lookback:.2f}"
             else:
-                redemption_txt = f"상환가={strike*(1 + coupon):.2f}"
+                redemption_txt = f"{barrier_val * strike:.2f}"
 
-            body_lines.append(
-                f"  → {upcoming}차 평가일: {eval_date}, {barrier_txt}, {redemption_txt}"
-            )
+            tranche_txt = str(upcoming)
         else:
-            # 모든 조기상환 일정 경과 시 만기 평가
-            maturity_date = MATURITY_DATES[ticker].strftime('%Y-%m-%d')
-            m_barrier = MATURITY_BARRIERS[ticker]
-            m_coupon = MATURITY_COUPONS[ticker]
-            # 만기일 종가 조회
+            # 만기 평가
+            upcoming = '만기'
+            eval_date = MATURITY_DATES[ticker].strftime('%Y-%m-%d')
+            barrier_val = MATURITY_BARRIERS[ticker]
+            b_txt = f"{barrier_val*100:.1f}%"
+            # 상환가 계산: Barrier * 기준가격 or 기초자산 종가
             final_price = fetch_price_on_date(ticker, MATURITY_DATES[ticker])
-
-            if final_price >= strike * m_barrier:
-                payout = strike * (1 + m_coupon)
-                body_lines.append(
-                    f"  → 만기평가일: {maturity_date}, Barrier≥{m_barrier*100:.1f}% (충족), 상환가={payout:.2f}"
-                )
+            if final_price >= strike * barrier_val:
+                redemption_txt = f"{(barrier_val * strike):.2f}"
             else:
-                body_lines.append(
-                    f"  → 만기평가일: {maturity_date}, Barrier<{m_barrier*100:.1f}% (미충족), "
-                    f"상환가=기초자산 종가({final_price:.2f})"
-                )
+                redemption_txt = f"{final_price:.2f}"
+            tranche_txt = '만기'
 
-        # 차트 첨부
-        chart_buf = generate_price_chart(ticker)
-        attachments.append((f"{ticker}_chart_{today_str}.png", chart_buf))
-        body_lines.append("")  # 한 줄 띄우기
+        rows.append([
+            ticker,
+            f"{close_price:.2f}",
+            f"{strike:.2f}",
+            decline_txt,
+            f"{ki_price:.2f}",
+            tranche_txt,
+            eval_date,
+            b_txt,
+            redemption_txt
+        ])
+
+    # 컬럼 너비 계산
+    widths = [max(len(str(val)) for val in col) for col in zip(headers, *rows)]
+    # 테이블 문자열 생성
+    table_lines = []
+    # 헤더
+    header_line = " | ".join(h.ljust(widths[i]) for i, h in enumerate(headers))
+    sep_line = "-|-".join('-' * widths[i] for i in range(len(headers)))
+    table_lines.extend([header_line, sep_line])
+    # 데이터 행
+    for row in rows:
+        line = " | ".join(str(val).ljust(widths[i]) for i, val in enumerate(row))
+        table_lines.append(line)
+
+    body = "\n".join(table_lines)
 
     # 이메일 전송
     send_email(
         subject=f"[{today_str}] ELS Daily Report",
-        body="\n".join(body_lines),
-        attachments=attachments,
+        body=body,
+        attachments=[(f"{t}_chart_{today_str}.png", generate_price_chart(t)) for t in UNDERLYING_TICKERS],
         config=EMAIL_CONFIG
     )
 
