@@ -76,16 +76,19 @@ def job():
 
 # 자동 실행: 스케줄러 설정 (매일 특정 시간에 실행되도록)
 def schedule_job():
-    schedule.every().day.at("07:10").do(job)  # 7:10 AM (한국 시간)에 실행
+    if 'GITHUB_ACTIONS' in os.environ:  # GitHub Actions 환경에서 실행되는지 확인
+        print("GitHub Actions 환경에서 실행됨, 스케줄러 루프를 건너뜁니다.")
+        job()  # 한 번만 job 실행
+    else:
+        schedule.every().day.at("07:10").do(job)  # 7:10 AM (한국 시간)에 실행
 
-    # 반복 실행 없이 일정 시간이 지난 후 종료
-    while True:
-        print("Waiting for scheduled jobs...")
-        schedule.run_pending()
-        time.sleep(60)  # 1분마다 실행
-        if schedule.get_jobs() == []:  # 모든 작업이 끝났다면 종료
-            print("All jobs completed, exiting loop.")
-            break
+        while True:
+            print("대기 중...")
+            schedule.run_pending()
+            time.sleep(60)  # 1분마다 실행
+            if schedule.get_jobs() == []:
+                print("모든 작업이 완료되어 종료합니다.")
+                break
 
 # 매뉴얼 실행: 한 번만 실행하고 종료
 def manual_run():
