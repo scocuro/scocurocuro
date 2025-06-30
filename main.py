@@ -17,6 +17,7 @@ from data_utils import fetch_last_close, fetch_price_on_date
 from chart_utils import generate_price_chart
 from email_utils import send_email
 import os
+import sys
 
 def job():
     today = date.today()
@@ -73,12 +74,27 @@ def job():
         config=EMAIL_CONFIG
     )
 
-# 스케줄러 설정 (매일 특정 시간에 실행되도록)
-schedule.every().day.at("07:10").do(job)  # 7:10 AM (한국 시간)에 실행
+# 자동 실행: 스케줄러 설정 (매일 특정 시간에 실행되도록)
+def schedule_job():
+    schedule.every().day.at("07:10").do(job)  # 7:10 AM (한국 시간)에 실행
 
-# 이 부분에서 반복 루프를 종료할 수 있도록 하기 위해 GitHub Actions에서는 아래와 같은 방식으로 실행합니다.
-while True:
-    schedule.run_pending()
-    time.sleep(60)  # 1분마다 실행
-    if schedule.get_jobs() == []:  # 모든 작업이 끝났다면 종료
-        break
+    # 반복 실행 없이 일정 시간이 지난 후 종료
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # 1분마다 실행
+        if schedule.get_jobs() == []:  # 모든 작업이 끝났다면 종료
+            break
+
+# 매뉴얼 실행: 한 번만 실행하고 종료
+def manual_run():
+    job()
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "manual":
+        # 매뉴얼 실행 시 한 번만 실행
+        print("Manual execution triggered")
+        manual_run()
+    else:
+        # 자동 실행 (GitHub Actions 등에서 사용)
+        print("Scheduled execution triggered")
+        schedule_job()
