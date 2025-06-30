@@ -80,9 +80,11 @@ def schedule_job():
 
     # 반복 실행 없이 일정 시간이 지난 후 종료
     while True:
+        print("Waiting for scheduled jobs...")
         schedule.run_pending()
         time.sleep(60)  # 1분마다 실행
         if schedule.get_jobs() == []:  # 모든 작업이 끝났다면 종료
+            print("All jobs completed, exiting loop.")
             break
 
 # 매뉴얼 실행: 한 번만 실행하고 종료
@@ -96,5 +98,4 @@ if __name__ == "__main__":
         manual_run()
     else:
         # 자동 실행 (GitHub Actions 등에서 사용)
-        print("Scheduled execution triggered")
-        schedule_job()
+        print("Sc
