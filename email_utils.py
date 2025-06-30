@@ -6,6 +6,7 @@ from email import encoders
 
 def send_email(subject: str, body: str, attachments: list, config: dict):
     try:
+        print("Attempting to send email...")
         msg = MIMEMultipart()
         msg['From'] = config['FROM_ADDR']
         msg['To'] = ', '.join(config['TO_ADDRS'])
