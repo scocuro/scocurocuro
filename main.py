@@ -1,6 +1,6 @@
 import schedule
 import time
-from datetime import date, datetime
+from datetime import date
 from config import (
     UNDERLYING_TICKERS,
     STRIKE_PRICES,
@@ -76,7 +76,9 @@ def job():
 # 스케줄러 설정 (매일 특정 시간에 실행되도록)
 schedule.every().day.at("07:10").do(job)  # 7:10 AM (한국 시간)에 실행
 
-# 메인 루프 (스크립트가 계속 실행되도록)
+# 이 부분에서 반복 루프를 종료할 수 있도록 하기 위해 GitHub Actions에서는 아래와 같은 방식으로 실행합니다.
 while True:
     schedule.run_pending()
     time.sleep(60)  # 1분마다 실행
+    if schedule.get_jobs() == []:  # 모든 작업이 끝났다면 종료
+        break
