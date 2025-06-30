@@ -98,4 +98,5 @@ if __name__ == "__main__":
         manual_run()
     else:
         # 자동 실행 (GitHub Actions 등에서 사용)
-        print("Sc
+        print("Scheduled execution triggered")
+        schedule_job()
