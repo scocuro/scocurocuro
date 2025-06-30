@@ -47,7 +47,4 @@ def job():
 
         if upcoming:
             eval_date = eval_map[upcoming].strftime('%Y-%m-%d')
-            barrier = EARLY_REDEMPTION_BARRIERS[ticker][upcoming]
-            # Barrier 처리
-            if isinstance(barrier, (tuple, list)):
-                b_txt = f"{ba_
+            barrier = EARLY_REDEMPTION_BARRIERS[ticker]
