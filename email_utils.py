@@ -31,7 +31,7 @@ def send_email(subject: str, body: str, attachments: list, config: dict):
             server.starttls()
             server.login(config['USERNAME'], config['PASSWORD'])
             server.send_message(msg)
-        
+
         print(f"Email sent successfully to {', '.join(config['TO_ADDRS'])}")
 
     except Exception as e:
