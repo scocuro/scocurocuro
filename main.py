@@ -16,45 +16,69 @@ def job():
     today = date.today()
     today_str = today.strftime('%Y-%m-%d')
 
-    headers = [
-        "Ticker", "종가", "기준가격", "하락률", "Knock-in",
-        "평가차수", "평가일", "Barrier", "Coupon"
-    ]
+    # 1) 데이터 수집 및 계산
     rows = []
-
     for ticker in UNDERLYING_TICKERS:
         strike      = STRIKE_PRICES[ticker]
         close_price = fetch_last_close(ticker)
         decline     = 1 - close_price / strike
-        decline_txt = "해당없음" if decline < 0 else f"{decline*100:.2f}%"
-        ki_price    = strike * KNOCK_IN_BARRIERS[ticker]
 
         # 다음 평가차수
         upcoming = next((i for i, d in EVALUATION_DATES[ticker].items() if d > today), None)
         if not upcoming:
             continue
 
-        eval_date = EVALUATION_DATES[ticker][upcoming].strftime('%Y-%m-%d')
-        barrier   = EARLY_REDEMPTION_BARRIERS[ticker][upcoming]
-        coupon    = EARLY_REDEMPTION_COUPONS[ticker][upcoming]
+        # barrier 비율 (tuple인 경우 첫번째 요소 사용)
+        raw_barrier = EARLY_REDEMPTION_BARRIERS[ticker][upcoming]
+        barrier_ratio = raw_barrier[0] if isinstance(raw_barrier, tuple) else raw_barrier
+
+        # 숫자·퍼센트 포맷팅
+        close_s  = f"{close_price:.2f}"
+        strike_s = f"{strike:.2f}"
+        decline_s= "해당없음" if decline < 0 else f"{(decline*100):.2f}%"
+        ki_s     = f"{(strike * KNOCK_IN_BARRIERS[ticker]):.2f}"
+        barrier_s= f"{(barrier_ratio*100):.2f}%"
+        eval_date= EVALUATION_DATES[ticker][upcoming].strftime('%Y-%m-%d')
+        redemption_price = strike * barrier_ratio
+        redemption_s = f"{redemption_price:.2f}"
 
         rows.append([
-            ticker, close_price, strike, decline_txt,
-            ki_price, upcoming, eval_date, barrier, coupon
+            ticker, close_s, strike_s, decline_s,
+            ki_s, str(upcoming), eval_date,
+            barrier_s, redemption_s
         ])
 
-    # CSV 생성
+    # 2) 마크다운 표 문자열 생성
+    header = [
+        "Ticker", "종가", "기준가격", "하락률",
+        "Knock-in", "평가차수", "평가일",
+        "Barrier", "상환가"
+    ]
+    sep = ["-" * len(h) for h in header]
+
+    table_lines = []
+    table_lines.append(" | ".join(header))
+    table_lines.append(" | ".join(sep))
+    for r in rows:
+        table_lines.append(" | ".join(r))
+
+    table_md = "\n".join(table_lines)
+
+    # 3) 콘솔 출력
+    print(table_md)
+
+    # 4) CSV 파일 생성 (첨부용)
     output_file = 'els_report.csv'
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(headers)
+        writer.writerow(header)
         writer.writerows(rows)
+    print(f"\nCSV 파일 생성 완료: {output_file}")
 
-    # 이메일 전송
+    # 5) 이메일 전송
     send_email(
         subject=f"ELS Report ({today_str})",
-        body="아래는 ELS 리포트 내용입니다:\n" +
-             "\n".join([", ".join(map(str, row)) for row in rows]),
+        body=table_md,
         attachments=[("els_report.csv", output_file)],
         config=EMAIL_CONFIG
     )
