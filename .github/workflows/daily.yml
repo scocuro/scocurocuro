@@ -3,7 +3,7 @@ name: ELS Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: '10 22 * * *'  # 매일 한국시간 오전 7시 10분에 실행 (UTC 기준 오후 10시 10분)
+    - cron: '30 21 * * *'  # 매일 한국시간 오전 7시 10분에 실행 (UTC 기준 오후 10시 10분)
 
 jobs:
   run-report:
