@@ -160,5 +160,5 @@ EMAIL_CONFIG = {
     'USERNAME': 'hyunseo.kang238@gmail.com',
     'PASSWORD': 'ufrqdcgbcryicxvo',
     'FROM_ADDR': 'hyunseo.kang238@gmail.com',
-    'TO_ADDRS': ['fan155@naver.com']
+    'TO_ADDRS': ['fan155@naver.com','leejy_93@naver.com']
 }
