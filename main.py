@@ -7,6 +7,7 @@ from config import (
     EARLY_REDEMPTION_COUPONS,
     EVALUATION_DATES,
     KNOCK_IN_BARRIERS,
+    EMAIL_CONFIG,
     TICKER_DISPLAY_NAMES,   # ← 추가
 )
 from data_utils import fetch_last_close
