@@ -7,7 +7,7 @@ from config import (
     EARLY_REDEMPTION_COUPONS,
     EVALUATION_DATES,
     KNOCK_IN_BARRIERS,
-    EMAIL_CONFIG,
+    TICKER_DISPLAY_NAMES,   # ← 추가
 )
 from data_utils import fetch_last_close
 from email_utils import send_email
@@ -43,7 +43,8 @@ def job():
         redemption_s = f"{redemption_price:.2f}"
 
         rows.append([
-            ticker, close_s, strike_s, decline_s,
+            TICKER_DISPLAY_NAMES.get(ticker, ticker),  # ← 변환된 이름 사용
+            close_s, strike_s, decline_s,
             ki_s, str(upcoming), eval_date,
             barrier_s, redemption_s
         ])
