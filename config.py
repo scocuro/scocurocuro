@@ -215,3 +215,14 @@ EMAIL_CONFIG = {
     'FROM_ADDR': 'hyunseo.kang238@gmail.com',
     'TO_ADDRS': ['fan155@naver.com','leejy_93@naver.com']
 }
+
+# config.py (맨 아래에 추가)
+TICKER_DISPLAY_NAMES = {
+    'PLTR': '팔란티어(PLTR)',
+    'TSLA': '테슬라(TSLA)',
+    '^N225': '니케이225(^N225)',
+    '^GSPC': 'S&P500(^GSPC)',
+    '^STOXX50E': '유로스톡스50(^STOXX50E)',
+    '005930.KS': '삼성전자(005930.KS)',
+    '005380.KS': '현대차(005380.KS)',
+}
