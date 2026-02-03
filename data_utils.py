@@ -2,11 +2,10 @@ import yfinance as yf
 from datetime import date, timedelta
 
 def fetch_last_close(ticker: str) -> float:
-    df = yf.Ticker(ticker).history(period='5d')
-    if df.empty:
-        raise ValueError(f"No data for {ticker}")
-    # 마지막 행의 종가 반환
-    return float(df['Close'].iloc[-1])
+    tk = yf.Ticker(ticker)
+    # last_price는 실시간에 가까운 마지막 가격을 반환합니다.
+    last_price = tk.fast_info['last_price']
+    return float(last_price)
 
 
 def fetch_price_on_date(ticker: str, eval_date: date) -> float:
