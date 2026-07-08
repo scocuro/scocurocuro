@@ -80,7 +80,7 @@ EARLY_REDEMPTION_BARRIERS = {
 EARLY_REDEMPTION_COUPONS = {
     '^N225':    {i: 0.229 for i in range(1,12)},
     '^GSPC':    {i: 0.0880 for i in range(1,12)},
-    '^KS200':{i: 0.0880 for i in range(1,612},
+    '^KS200':{i: 0.0880 for i in range(1,12)},
     'PLTR':{i: 0.22 for i in range(1,6)},
     'MU':{i: 0.22 for i in range(1,6)},
 }
