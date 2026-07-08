@@ -8,14 +8,18 @@ on:
 jobs:
   run-report:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
+
       - name: Python 설치
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
+
       - name: 필요한 라이브러리 설치
         run: pip install yfinance matplotlib schedule
+
       - name: 리포트 실행
         run: python main.py
         env:
