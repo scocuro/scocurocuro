@@ -6,8 +6,8 @@ from datetime import date
 UNDERLYING_TICKERS = ['^N225', '^GSPC', '^KS200','PLTR','MU']
 
 STRIKE_PRICES = {
-    '^N225': 51939.89,
-    '^GSPC': 6966.28,
+    '^N225': 72353.96,
+    '^GSPC': 7472.79,
     '^KS200': 1477.22,
     'PLTR': 177.49,
     'MU' : 345.09,    
